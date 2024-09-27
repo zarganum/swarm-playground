@@ -1,0 +1,37 @@
+[project]
+name = "swarm-playground"
+
+readme = "README.md"
+requires-python = ">=3.12"
+description = "Docker Swarm playground for testing and learning purposes"
+dynamic = ["version"]
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "DJANGO", "FIRSTPARTY", "LOCALFOLDER"]
+default_section = "THIRDPARTY"
+
+[flake8]
+max-line-length = 88
+
+
+dependencies = ["docker"]
+
+[project.optional-dependencies]
+
+linting = [
+    "flake8",
+    "black",
+    "isort"]
+
+[project.scripts]
+
