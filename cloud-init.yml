@@ -1,0 +1,30 @@
+#cloud-config
+# vim: syntax=yaml
+
+# package_update: true
+# package_upgrade: true
+
+yum_repos:
+  docker-stable:
+    name: Docker CE Stable - $basearch
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    gpgkey: https://download.docker.com/linux/centos/gpg
+    gpgcheck: true
+    enabled: true
+
+packages:
+  - git
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+runcmd:
+  - firewall-offline-cmd --add-port 2377/tcp
+  - firewall-offline-cmd --add-port 7946/tcp
+  - firewall-offline-cmd --add-port 7946/udp
+  - firewall-offline-cmd --add-port 4789/udp
+  - usermod -aG docker opc
+  - systemctl enable docker.service
+  - systemctl start docker.service
