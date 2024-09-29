@@ -1,7 +1,5 @@
 # credits: https://github.com/YouMightNotNeedKubernetes/etcd
 # label each node with `docker node update --label-add vault=true NODE-ID`
-# create config with `docker config create --template-driver golang vault-node-config-hcl config.hcl`
-# TODO: fix /data permissions to openbao:openbao (100:1000)
 x-deploy: &x-default-deploy
   replicas: ${VAULT_REPLICAS:-3}
   placement:
@@ -44,9 +42,8 @@ x-logging: &x-default-logging
     max-file: "3"
 
 networks:
-  vault_lan:
-    name: vault_lan
-    external: true
+  raft:
+    name: vault_cluster
 
 volumes:
   vault:
@@ -57,25 +54,32 @@ configs:
     file: ./config.hcl
     template_driver: golang
 
+  entrypoint-sh:
+    file: ./entrypoint.sh
+
 services:
   vault:
     image: openbao/openbao
-    hostname: bao-{{.Task.Slot}}
+    hostname: vault-{{.Task.Slot}}
     configs:
       - source: vault-config-hcl
         target: /openbao/config/vault.hcl
         uid: '0'
         gid: '0'
         mode: 0444
+      - source: entrypoint-sh
+        target: /usr/local/bin/docker-entrypoint.sh
+        uid: '0'
+        gid: '0'
+        mode: 0755
     environment:
-      - BAO_CLUSTER_INTERFACE=eth0
       - BAO_LOG_LEVEL=info
       - VAULT_ADDR=http://127.0.0.1:8200
-    command: ["server"]
+    command: ["bao", "server", "-config", "/openbao/config/vault.hcl"]
     ports:
       - 8200:8200
     networks:
-      - vault_lan
+      - raft
     volumes:
       - vault:/data
     deploy: *x-default-deploy
